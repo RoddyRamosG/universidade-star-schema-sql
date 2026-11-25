@@ -1,178 +1,284 @@
-# universidade-star_schema-sql
-Repositório: Criando um Star Schema para cenários de Universidade, como foco em Professor.
+# Modelagem Dimensional de uma Universidade
 
-# Modelagem Dimensional – Universidade  
-### Foco da Análise: Professor
+Projeto de modelagem dimensional desenvolvido para representar atividades acadêmicas de uma universidade, com foco na atuação dos professores.
 
-Este repositório apresenta o desenvolvimento de um **modelo dimensional (Star Schema)** construído a partir de um banco de dados relacional de uma **Universidade**.  
-O objetivo central é permitir análises relacionadas aos **professores**, seus departamentos, disciplinas, cursos e datas de oferta.
+O projeto transforma um modelo relacional em um **Star Schema**, permitindo análises relacionadas a professores, departamentos, cursos, disciplinas e períodos acadêmicos.
 
----
+## Objetivo do projeto
 
-## Objetivo do Projeto
+Desenvolver um Data Warehouse simplificado, composto por:
 
-Desenvolver um **Data Warehouse** simplificado, com foco na criação de:
+- Uma tabela fato relacionada à oferta de disciplinas pelos professores;
+- Tabelas de dimensão para professores, departamentos, cursos, disciplinas e datas;
+- Um modelo estrela documentado;
+- Scripts em MySQL para criação das tabelas e dos relacionamentos;
+- Uma estrutura adequada para futuras análises e dashboards.
 
-- **Tabela Fato** relacionada à oferta de disciplinas pelos professores  
-- **Tabelas Dimensão** descrevendo professor, disciplina, curso, departamento e tempo  
-- **Modelo Estrela (Star Schema)** completo e documentado  
-- **Scripts em MySQL** para criação das tabelas dimensionais e fato  
+## Contexto analítico
 
-Este projeto simula um ambiente de BI onde os gestores podem analisar:
+O modelo foi criado para apoiar perguntas como:
 
-- Quais disciplinas cada professor oferta  
-- Em quais cursos ele atua  
-- Distribuição de professores por departamento  
-- Evolução temporal das ofertas  
+- Quais disciplinas são ministradas por cada professor?
+- Em quais cursos cada professor atua?
+- Como os professores estão distribuídos entre os departamentos?
+- Como as atividades acadêmicas evoluem ao longo do tempo?
+- Quais professores atuam em múltiplos cursos ou disciplinas?
+- Qual é a carga horária associada a cada professor?
+- Como as atividades se distribuem entre os campi?
 
----
+## Modelo relacional de origem
 
-## Modelo Relacional de Origem
+O modelo operacional da universidade contém as seguintes entidades principais:
 
-O modelo original operacional da Universidade contém as seguintes entidades principais:
+- `Professor (id_professor, id_departamento)`
+- `Departamento (id_departamento, nome, campus, id_professor)`
+- `Curso (id_curso, id_departamento)`
+- `Disciplina (id_disciplina, id_professor)`
+- `DisciplinaCurso (id_disciplina, id_curso)`
+- `Aluno (id_aluno)`
+- `Matriculado (id_aluno, id_disciplina)`
+- `PreRequisitoDisciplina (id_disciplina, id_prerequisito)`
+- `PreRequisito (id_prerequisito)`
 
-- Professor ( id_professor, id_departamento )
-- Departamento ( id_departamento, nome, campus, id_professor )
-- Curso ( id_curso, id_departamento ) 
-- Disciplina ( id_disciplina, id_professor )
-- DisciplinaCurso ( id_disciplina, id_curso ) 
-- Aluno ( id_aluno )
-- Matriculado ( id_aluno, id_disciplina )
-- PreRequisitoDisciplina ( id_disciplina, id_prerequisito )
-- PreRequisito ( id_prerequisito )
+## Star Schema
 
----
+### Granularidade
 
-## Star Schema – Visão Geral
+A granularidade representa o nível de detalhamento de cada registro da tabela fato.
 
-A granularidade definida foi:
+Neste projeto, foi definida como:
 
-Uma linha de fato por:
-Professor × Disciplina × Curso x Departamento x Data
+**Uma linha de fato por professor × disciplina × curso × departamento × data.**
 
-### Dimensões criadas:
+Essa definição permite relacionar a atuação de um professor a uma disciplina, a um curso, a um departamento e a um período específico.
 
-- DIM_PROFESSOR – dados dos professores  
-- DIM_DEPARTAMENTO – informações dos departamentos  
-- DIM_DISCIPLINA – infromações das disciplinas  
-- DIM_CURSO – dados dos cursos oferecidos  
-- DIM_DATA – dimensão de tempo/calendário
+## Dimensões
 
-### Tabela Fato criada:
+O modelo contém as seguintes dimensões:
 
-- FATO_PROFESSOR - Tabela fato com métricas sobre atividades dos professores. Relaciona professor, disciplina, curso e datas.
-  
----
+- `DIM_PROFESSOR`: informações dos professores;
+- `DIM_DEPARTAMENTO`: informações dos departamentos;
+- `DIM_DISCIPLINA`: informações das disciplinas;
+- `DIM_CURSO`: informações dos cursos;
+- `DIM_DATA`: informações de tempo e calendário.
 
-## Diagrama Lógico – Star Schema
-                        FATO_PROFESSOR
-                             |
-       |----------|----------|----------|----------|
-      DIM_       DIM_       DIM_       DIM_       DIM_
-    PROFESSOR   CURSO    DISCIPLINA    DATA    DEPARTAMENTO
----
+## Tabela fato
+
+A tabela `FATO_PROFESSOR` centraliza as referências às dimensões e as medidas relacionadas às atividades dos professores.
+
+Ela relaciona:
+
+- Professor;
+- Departamento;
+- Curso;
+- Disciplina;
+- Data.
+
+## Diagrama lógico
+
+```text
+                    DIM_PROFESSOR
+                          |
+DIM_CURSO ----- FATO_PROFESSOR ----- DIM_DISCIPLINA
+                          |
+                  DIM_DEPARTAMENTO
+                          |
+                       DIM_DATA
+```
+
+O diagrama detalhado do projeto está disponível na pasta `imagens`.
+
+## Estrutura do repositório
+
+```text
+universidade-star_schema-sql/
+├── docs/
+├── imagens/
+├── sql/
+│   └── professor_star_schema.sql
+└── README.md
+```
+
+### `docs`
+
+Contém materiais complementares e documentação do projeto.
+
+### `imagens`
+
+Contém o diagrama utilizado para representar visualmente o Star Schema.
+
+### `sql`
+
+Contém os scripts MySQL utilizados para criar as tabelas de dimensão, a tabela fato, as chaves e os relacionamentos.
 
 ## Scripts MySQL
 
-Os scripts para criação das tabelas do Data Warehouse estão localizados em:
-/sql/professor_star_schema.sql
+O arquivo principal está localizado em:
 
-Eles contêm:
+`sql/professor_star_schema.sql`
 
-- Criação das tabelas dimensão  
-- Criação da tabela fato  
-- Definição de chaves primárias  
-- Criação de relacionamentos (FKs)
+O script contempla:
 
----
-##  Dimensão DATA
+- Criação das tabelas de dimensão;
+- Criação da tabela fato;
+- Definição das chaves primárias;
+- Definição das chaves estrangeiras;
+- Criação dos relacionamentos entre a tabela fato e as dimensões.
 
-Foi criada manualmente e inclui:
+## Dicionário resumido das dimensões
 
-- Data completa  
-- Ano  
-- Semestre  
-- Trimestre  
-- Mês
-- Nome do mês  
-- Dia da semana  
-- Feriado
-- Periodo acadêmico  
+### `DIM_DATA`
 
-## Dimensão CURSO
+Dimensão utilizada para análises temporais.
 
-Tem como origem da tabela Curso. Inclui:
+Principais atributos:
 
-- nome_curso
-- tipo_curso
-- modalidade 
-- carga_horaria_total
-- data_criacao
+- Data completa;
+- Ano;
+- Semestre;
+- Trimestre;
+- Mês;
+- Nome do mês;
+- Dia da semana;
+- Indicador de feriado;
+- Período acadêmico.
 
-## Dimensão DISCIPLINA
+### `DIM_CURSO`
 
-Tem como origem da tabela Disciplina. Inclui:
+Dimensão originada da entidade Curso.
 
-- nome_disciplina
-- codigo_disciplina
-- carga_horaria
-- creditos
-- tipo_disciplina
-- nivel
-- possui_prerequisito
-- data_criacao
+Principais atributos:
 
-## Dimensão DEPARTAMENTO
+- `nome_curso`;
+- `tipo_curso`;
+- `modalidade`;
+- `carga_horaria_total`;
+- `data_criacao`.
 
-Tem como origem da tabela Departamento. Inclui:
+### `DIM_DISCIPLINA`
 
-- nome_departamento
-- campus
-- sigla 
-- data_criacao
+Dimensão originada da entidade Disciplina.
 
-## Dimensão PROFESSOR
+Principais atributos:
 
-Tem como origem da tabela Professor. Inclui:
+- `nome_disciplina`;
+- `codigo_disciplina`;
+- `carga_horaria`;
+- `creditos`;
+- `tipo_disciplina`;
+- `nivel`;
+- `possui_prerequisito`;
+- `data_criacao`.
 
-- nome_professor
-- titulacao
-- ano_ingresso
-- status
-- data_criacao
+### `DIM_DEPARTAMENTO`
 
-## TABELA FATO_PROFESSOR
+Dimensão originada da entidade Departamento.
 
-### Chave Primária:
+Principais atributos:
 
-- id_fato (PK – AUTO_INCREMENT)
+- `nome_departamento`;
+- `campus`;
+- `sigla`;
+- `data_criacao`.
 
-### Chaves Estrangeiras:
+### `DIM_PROFESSOR`
 
-- id_professor → DIM_PROFESSOR
-- id_departamento → DIM_DEPARTAMENTO
-- id_curso → DIM_CURSO
-- id_disciplina → DIM_DISCIPLINA
-- id_data → DIM_DATA
+Dimensão originada da entidade Professor.
 
-### Atributos de Medida:
+Principais atributos:
 
-- qtd_deisciplinas_ministradas
-- qtd_cursos_envolvidos
-- qtd_prerequisitos_ministrados
-- indicador_coordenador
+- `nome_professor`;
+- `titulacao`;
+- `ano_ingresso`;
+- `status`;
+- `data_criacao`.
 
-## Análises
+## Estrutura da tabela `FATO_PROFESSOR`
 
-- Carga horária por Professor
-- Professores por Departamento
-- Evolução temporal das atividades
-- Ranking de Professores por carga horário
-- Professores multidisciplinares
-- Análise de Pré-Requisitos por Professor
-- Comparativo entre Departamentos
-- Distribuição por Campus
+### Chave primária
 
----
+- `id_fato`: identificador único da tabela fato, definido como `AUTO_INCREMENT`.
 
+### Chaves estrangeiras
 
+- `id_professor` → `DIM_PROFESSOR`;
+- `id_departamento` → `DIM_DEPARTAMENTO`;
+- `id_curso` → `DIM_CURSO`;
+- `id_disciplina` → `DIM_DISCIPLINA`;
+- `id_data` → `DIM_DATA`.
+
+### Medidas e indicadores
+
+- `qtd_disciplinas_ministradas`;
+- `qtd_cursos_envolvidos`;
+- `qtd_prerequisitos_ministrados`;
+- `indicador_coordenador`.
+
+## Análises possíveis
+
+A partir desse modelo, podem ser construídas análises como:
+
+- Carga horária por professor;
+- Quantidade de professores por departamento;
+- Evolução temporal das atividades acadêmicas;
+- Ranking de professores por carga horária;
+- Identificação de professores multidisciplinares;
+- Análise de pré-requisitos por professor;
+- Comparação entre departamentos;
+- Distribuição das atividades por campus;
+- Quantidade de cursos associados a cada professor;
+- Participação dos professores ao longo dos períodos acadêmicos.
+
+## Tecnologias utilizadas
+
+- MySQL;
+- SQL;
+- Modelagem dimensional;
+- Star Schema;
+- Git;
+- GitHub.
+
+## Competências demonstradas
+
+Este projeto demonstra conhecimentos em:
+
+- Modelagem de dados;
+- Conversão de um modelo relacional para dimensional;
+- Definição de granularidade;
+- Criação de tabelas fato e dimensão;
+- Definição de chaves primárias e estrangeiras;
+- Integridade referencial;
+- Organização de scripts SQL;
+- Documentação técnica;
+- Estruturação de dados para Business Intelligence.
+
+## Como executar
+
+1. Faça o download ou clone este repositório.
+2. Abra o MySQL Workbench ou outro cliente compatível com MySQL.
+3. Localize o script na pasta `sql`.
+4. Execute o script de criação do modelo dimensional.
+5. Confira as tabelas e os relacionamentos criados.
+6. Consulte o diagrama da pasta `imagens` para visualizar a estrutura do modelo.
+
+## Próximas melhorias
+
+- Adicionar dados fictícios para testes;
+- Criar consultas analíticas;
+- Desenvolver views para indicadores recorrentes;
+- Adicionar índices para otimização;
+- Validar as medidas da tabela fato;
+- Construir um dashboard no Power BI;
+- Documentar exemplos de resultados obtidos;
+- Incluir um diagrama atualizado no início do README.
+
+## Origem do projeto
+
+Projeto desenvolvido como parte de um desafio de modelagem dimensional, organizado e documentado para composição de portfólio profissional.
+
+## Autor
+
+**Roddy Ramos Gonzáles**
+
+- [GitHub](https://github.com/RoddyRamosG)
+- [LinkedIn](https://www.linkedin.com/in/roddy-ramos-g-38483a1a/)
